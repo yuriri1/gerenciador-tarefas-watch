@@ -4,6 +4,37 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: us-east-1
+  environment:
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
 
 plugins:
   - serverless-offline
+functions:
+  authRegister:
+    handler: src/functions/auth/handler.register
+    events:
+      - httpApi:
+          path: /auth/register
+          method: post
+
+  authLogin:
+    handler: src/functions/auth/handler.login
+    events:
+      - httpApi:
+          path: /auth/login
+          method: post
+
+  getTasks:
+    handler: src/functions/tasks/handler.list
+    events:
+      - httpApi:
+          path: /projects/{projectId}/tasks
+          method: get
+
+  updateTaskStatus:
+    handler: src/functions/tasks/handler.updateStatus
+    events:
+      - httpApi:
+          path: /tasks/{id}/status
+          method: patch
