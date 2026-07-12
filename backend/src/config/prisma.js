@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaClient } from "../../generated/prisma/client.js";
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
@@ -7,31 +7,31 @@ const { Pool } = pg;
 const globalForPrisma = globalThis;
 
 const pool =
-  globalForPrisma.pgPool ??
-  new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
+	globalForPrisma.pgPool ??
+	new Pool({
+		connectionString: process.env.DATABASE_URL,
+	});
 
 if (!globalForPrisma.pgPool) {
-  globalForPrisma.pgPool = pool;
+	globalForPrisma.pgPool = pool;
 }
 
 const adapter =
-  globalForPrisma.prismaAdapter ??
-  new PrismaPg(pool);
+	globalForPrisma.prismaAdapter ??
+	new PrismaPg(pool);
 
 if (!globalForPrisma.prismaAdapter) {
-  globalForPrisma.prismaAdapter = adapter;
+	globalForPrisma.prismaAdapter = adapter;
 }
 
 const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-  });
+	globalForPrisma.prisma ??
+	new PrismaClient({
+		adapter,
+	});
 
 if (!globalForPrisma.prisma) {
-  globalForPrisma.prisma = prisma;
+	globalForPrisma.prisma = prisma;
 }
 
 export default prisma;

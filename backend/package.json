@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "start": "npx serverless offline"
   },
   "keywords": [],
@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "jest": "^30.4.2",
     "prisma": "^7.8.0",
     "serverless": "^4.39.0",
     "serverless-offline": "^14.7.4"

@@ -25,6 +25,27 @@ functions:
           path: /auth/login
           method: post
 
+  createProject:
+    handler: src/functions/projects/handler.create
+    events:
+      - httpApi:
+          path: /projects
+          method: post
+
+  listProjects:
+    handler: src/functions/projects/handler.list
+    events:
+      - httpApi:
+          path: /projects
+          method: get
+
+  createTask:
+    handler: src/functions/tasks/handler.create
+    events:
+      - httpApi:
+          path: /tasks
+          method: post
+
   getTasks:
     handler: src/functions/tasks/handler.list
     events:
@@ -37,4 +58,6 @@ functions:
     events:
       - httpApi:
           path: /tasks/{id}/status
-          method: patch
+        method: patch
+  
+  
