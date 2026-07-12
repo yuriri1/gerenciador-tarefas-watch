@@ -1,0 +1,60 @@
+{
+  "/home/yuri/gerenciador-tarefas-watch/backend/serverless.yml": {
+    "versionFramework": "4.39.0",
+    "servicePath": "/home/yuri/gerenciador-tarefas-watch/backend/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "gerenciador-tarefas-backend",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs20.x",
+        "region": "us-east-1"
+      },
+      "plugins": [
+        "serverless-offline"
+      ],
+      "functions": {
+        "registerUser": {
+          "handle": "src/functions/auth.register",
+          "events": [
+            {
+              "http": {
+                "path": "auth/register",
+                "method": "post",
+                "cors": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs20.x",
+      "region": "us-east-1"
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": true,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: gerenciador-tarefas-backend\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  region: us-east-1\n\nplugins:\n  - serverless-offline\n\nfunctions:\n  registerUser:\n    handle: src/functions/auth.register\n    events:\n      - http:\n           path: auth/register\n           method: post\n           cors: true\n",
+    "command": [
+      "login"
+    ],
+    "options": {},
+    "orgId": "ff01c8bf-dd94-4b81-80c7-d1dfe19383e3",
+    "orgName": "yurir",
+    "userId": "KVjW2wYpz2vx1fWMyT",
+    "userName": "yurir",
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  }
+}
