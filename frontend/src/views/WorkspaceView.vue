@@ -28,6 +28,10 @@
         </v-card>
       </v-dialog>
       <v-col cols="12" sm="4" class="text-sm-right">
+        <v-btn variant="outlined" color="grey-darken-2" prepend-icon="mdi-account-group-outline"
+          class="font-weight-bold text-capitalize mr-2" @click="isMembersModalOpen = true">
+          Membros
+        </v-btn>
         <v-btn color="primary" prepend-icon="mdi-plus" class="font-weight-bold text-capitalize"
           @click="isTaskModalOpen = true">
           Nova Tarefa
@@ -58,6 +62,7 @@
     </v-row>
     <NewTaskModal v-model="isTaskModalOpen" :project-id="id" @show-toast="forwardToast" />
     <EditTaskModal v-model="isEditModalOpen" :task="selectedTask" @show-toast="forwardToast" />
+    <WorkspaceMembersModal v-model="isMembersModalOpen" :project-id="id" @show-toast="forwardToast" />
   </v-container>
 </template>
 
@@ -67,6 +72,7 @@ import { useTaskStore } from '../stores/tasks';
 import TaskColumn from '../components/TaskColumn.vue';
 import NewTaskModal from '../components/NewTaskModal.vue';
 import EditTaskModal from '../components/EditTaskModal.vue';
+import WorkspaceMembersModal from '../components/WorkspaceMembersModal.vue';
 
 import { useProjectStore } from '../stores/projects';
 import { useRouter } from 'vue-router';
@@ -92,6 +98,8 @@ const completedTasks = computed(() => taskStore.tasks.filter(t => t.status === '
 
 const confirmDeleteWorkspace = ref(false);
 const workspaceDeleteLoading = ref(false);
+
+const isMembersModalOpen = ref(false);
 
 const loadWorkspaceData = async () => {
   if (props.id) {

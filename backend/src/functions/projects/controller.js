@@ -116,4 +116,53 @@ export class ProjectController {
       });
     }
   }
+
+  async handleAddMember(projectId, userId, body = {}) {
+    try {
+      const { email } = body;
+
+      if (!email || typeof email !== 'string' || !email.trim()) {
+        return buildResponse(400, {
+          message: 'O campo email é obrigatório.',
+        });
+      }
+
+      const member = await this.service.addMember(projectId, userId, {
+        email: email.trim(),
+      });
+
+      return buildResponse(201, {
+        message: 'Membro adicionado ao projeto com sucesso.',
+        member,
+      });
+    } catch (error) {
+      if (error?.message === 'Projeto não encontrado.') {
+        return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
+      if (error?.message === 'Sem permissão para adicionar membros a este projeto.') {
+        return buildResponse(403, {
+          message: error.message,
+        });
+      }
+
+      if (error?.message === 'Usuário não encontrado.') {
+        return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
+      if (error?.message === 'Usuário já é membro deste projeto.') {
+        return buildResponse(409, {
+          message: error.message,
+        });
+      }
+
+      return buildResponse(400, {
+        message: error?.message || 'Erro ao adicionar membro ao projeto.',
+      });
+    }
+  }
 }

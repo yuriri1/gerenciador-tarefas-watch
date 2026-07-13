@@ -67,6 +67,13 @@ functions:
           path: /projects/{id}
           method: delete
 
+  addProjectMember:
+    handler: src/functions/projects/handler.addMember
+    events:
+      - httpApi:
+          path: /projects/{id}/members
+          method: post
+
   createTask:
     handler: src/functions/tasks/handler.create
     events:

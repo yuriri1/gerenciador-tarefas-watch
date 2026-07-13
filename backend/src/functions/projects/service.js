@@ -132,4 +132,73 @@ export class ProjectService {
       },
     });
   }
+
+  async addMember(projectId, userId, { email }) {
+    const normalizedEmail = normalizeLowercaseString(email);
+
+    const project = await this.prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+      select: {
+        id: true,
+        creatorId: true,
+      },
+    });
+
+    if (!project) {
+      throw new Error('Projeto não encontrado.');
+    }
+
+    if (project.creatorId !== userId) {
+      throw new Error('Sem permissão para adicionar membros a este projeto.');
+    }
+
+    const member = await this.prisma.user.findUnique({
+      where: {
+        email: normalizedEmail,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+
+    if (!member) {
+      throw new Error('Usuário não encontrado.');
+    }
+
+    const existingMembership = await this.prisma.projectMember.findUnique({
+      where: {
+        projectId_userId: {
+          projectId,
+          userId: member.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingMembership) {
+      throw new Error('Usuário já é membro deste projeto.');
+    }
+
+    return this.prisma.projectMember.create({
+      data: {
+        projectId,
+        userId: member.id,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }

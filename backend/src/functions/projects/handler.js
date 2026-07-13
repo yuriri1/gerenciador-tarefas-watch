@@ -145,3 +145,40 @@ export const remove = withAuth(async (event) => {
     });
   }
 });
+
+export const addMember = withAuth(async (event) => {
+  try {
+    const userId = event?.requestContext?.authorizer?.user?.userId;
+    const projectId = event?.pathParameters?.id;
+    const body = parseBody(event);
+
+    if (!userId) {
+      return formatResponse({
+        statusCode: 401,
+        body: { message: 'Usuário não autenticado.' },
+      });
+    }
+
+    if (body === null) {
+      return formatResponse({
+        statusCode: 400,
+        body: { message: 'Corpo da requisição inválido.' },
+      });
+    }
+
+    if (!projectId) {
+      return formatResponse({
+        statusCode: 400,
+        body: { message: 'O parâmetro id é obrigatório.' },
+      });
+    }
+
+    const response = await projectController.handleAddMember(projectId, userId, body);
+    return formatResponse(response);
+  } catch {
+    return formatResponse({
+      statusCode: 500,
+      body: { message: 'Erro interno do servidor.' },
+    });
+  }
+});

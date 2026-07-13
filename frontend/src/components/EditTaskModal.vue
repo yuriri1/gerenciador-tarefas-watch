@@ -13,6 +13,10 @@
                         :rules="[v => !!v || 'O título é obrigatório.']" required></v-text-field>
                     <v-textarea v-model="editedDescription" label="Descrição" variant="outlined" rows="3"></v-textarea>
 
+                    <v-select v-model="selectedUserId" :items="currentWorkspaceMembers" item-title="name"
+                        item-value="id" label="Responsável pela Tarefa" variant="outlined"
+                        prepend-inner-icon="mdi-account-outline" clearable></v-select>
+
                     <v-divider class="my-4"></v-divider>
 
                     <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-2">Etiquetas do Workspace</div>
@@ -69,9 +73,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useTaskStore } from '../stores/tasks';
 import { useCategoryStore } from '../stores/categories';
+import { useProjectStore } from '../stores/projects';
 
 const props = defineProps({
     modelValue: Boolean,
@@ -81,6 +86,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'show-toast']);
 const taskStore = useTaskStore();
 const categoryStore = useCategoryStore();
+const projectStore = useProjectStore();
 
 const isFormValid = ref(false);
 const saveLoading = ref(false);
@@ -94,6 +100,8 @@ const newCatColor = ref('#FFFFFF');
 
 const deleteLoading = ref(false);
 
+const selectedUserId = ref(null);
+
 watch(() => props.modelValue, async (isOpen) => {
     if (isOpen && props.task) {
         editedTitle.value = props.task.title;
@@ -102,6 +110,17 @@ watch(() => props.modelValue, async (isOpen) => {
 
         await categoryStore.fetchCategories();
     }
+});
+
+watch(() => props.modelValue, async (isOpen) => {
+  if (isOpen && props.task) {
+    editedTitle.value = props.task.title;
+    editedDescription.value = props.task.description || '';
+    selectedCategoryIds.value = props.task.categories?.map(c => c.id) || [];
+    selectedUserId.value = props.task.assignedUserId || null;
+    
+    await categoryStore.fetchCategories();
+  }
 });
 
 const handleCreateCategory = async () => {
@@ -141,7 +160,8 @@ const handleSave = async () => {
             title: editedTitle.value,
             description: editedDescription.value,
             status: props.task.status,
-            categoryIds: selectedCategoryIds.value
+            categoryIds: selectedCategoryIds.value,
+            UserId: selectedUserId.value || null
         });
         emit('show-toast', { message: 'Tarefa atualizada com sucesso!', color: 'success' });
         closeDialog();
@@ -153,7 +173,6 @@ const handleSave = async () => {
 };
 
 const handleDelete = async () => {
-    // Confirmação nativa rápida para evitar cliques acidentais
     if (!confirm('Tem certeza que deseja excluir esta tarefa permanentemente?')) return;
 
     deleteLoading.value = true;
@@ -167,6 +186,17 @@ const handleDelete = async () => {
         deleteLoading.value = false;
     }
 };
+
+const currentWorkspaceMembers = computed(() => {
+  const currentProject = projectStore.projects.find(p => p.id === props.task?.projectId);
+  
+  if (!currentProject || !currentProject.members) return [];
+
+  return currentProject.members.map(member => ({
+    id: member.user?.id || member.userId,
+    name: member.user?.name || 'Usuário Sem Nome'
+  }));
+});
 
 const closeDialog = () => {
     emit('update:modelValue', false);

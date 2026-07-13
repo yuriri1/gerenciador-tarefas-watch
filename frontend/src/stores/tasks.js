@@ -59,13 +59,14 @@ export const useTaskStore = defineStore('tasks', {
       }
     },
 
-    async updateTaskDetails(taskId, { title, description, categoryIds, status }) {
+    async updateTaskDetails(taskId, { title, description, categoryIds, status, userId }) {
       try {
         const response = await api.patch(`/tasks/${taskId}`, { 
           title, 
           description, 
           status,
-          categoryIds
+          categoryIds,
+          userId
         });
         
         const updatedTask = response.data.task || response.data;

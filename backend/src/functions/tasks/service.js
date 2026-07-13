@@ -9,7 +9,20 @@ export class TaskService {
 		this.prisma = database;
 	}
 
-	async create(userId, { title, description, projectId, categoryIds }) {
+	mapTaskWithAssignment(task) {
+		if (!task) {
+			return task;
+		}
+
+		const assignedCollaboration = task.collaborations?.[0] || null;
+
+		return {
+			...task,
+			assignedUserId: assignedCollaboration?.userId || null,
+		};
+	}
+
+	async create(userId, { title, description, projectId, categoryIds, userId: assignedUserId }) {
 		const project = await this.prisma.project.findUnique({
 			where: {
 				id: projectId,
@@ -30,7 +43,25 @@ export class TaskService {
 				}
 				: undefined;
 
-		return this.prisma.task.create({
+		if (assignedUserId !== undefined && assignedUserId !== null) {
+			const isProjectMember = await this.prisma.projectMember.findUnique({
+				where: {
+					projectId_userId: {
+						projectId,
+						userId: assignedUserId,
+					},
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (!isProjectMember) {
+				throw new Error('Usuário informado não é membro do projeto.');
+			}
+		}
+
+		const createdTask = await this.prisma.task.create({
 			data: {
 				title: normalizeLowercaseString(title),
 				description: normalizeNullableLowercaseString(description),
@@ -44,30 +75,67 @@ export class TaskService {
 						id: userId,
 					},
 				},
+				...(assignedUserId
+					? {
+						collaborations: {
+							create: [
+								{
+									userId: assignedUserId,
+								},
+							],
+						},
+					}
+					: {}),
 				...(categories ? { categories } : {}),
 			},
 			include: {
 				categories: true,
+				collaborations: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+							},
+						},
+					},
+				},
 			},
 		});
+
+		return this.mapTaskWithAssignment(createdTask);
 	}
 
 	async listByProject(projectId) {
-		return this.prisma.task.findMany({
+		const tasks = await this.prisma.task.findMany({
 			where: {
 				projectId,
 			},
 			include: {
 				categories: true,
+				collaborations: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+							},
+						},
+					},
+				},
 			},
 			orderBy: {
 				createdAt: 'desc',
 			},
 		});
+
+		return tasks.map((task) => this.mapTaskWithAssignment(task));
 	}
 
 	async getById(taskId) {
-		return this.prisma.task.findUnique({
+		const task = await this.prisma.task.findUnique({
 			where: {
 				id: taskId,
 			},
@@ -91,8 +159,21 @@ export class TaskService {
 						email: true,
 					},
 				},
+				collaborations: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+							},
+						},
+					},
+				},
 			},
 		});
+
+		return this.mapTaskWithAssignment(task);
 	}
 
 	async updateStatus(taskId, status) {
@@ -109,7 +190,7 @@ export class TaskService {
 			throw new Error('Tarefa não encontrada.');
 		}
 
-		return this.prisma.task.update({
+		const updatedTask = await this.prisma.task.update({
 			where: {
 				id: taskId,
 			},
@@ -118,17 +199,31 @@ export class TaskService {
 			},
 			include: {
 				categories: true,
+				collaborations: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+							},
+						},
+					},
+				},
 			},
 		});
+
+		return this.mapTaskWithAssignment(updatedTask);
 	}
 
-	async update(taskId, { title, description, status, categoryIds }) {
+	async update(taskId, { title, description, status, categoryIds, userId }) {
 		const task = await this.prisma.task.findUnique({
 			where: {
 				id: taskId,
 			},
 			select: {
 				id: true,
+				projectId: true,
 			},
 		});
 
@@ -151,15 +246,61 @@ export class TaskService {
 			};
 		}
 
-		return this.prisma.task.update({
+		if (userId !== undefined && userId !== null) {
+			const isProjectMember = await this.prisma.projectMember.findUnique({
+				where: {
+					projectId_userId: {
+						projectId: task.projectId,
+						userId,
+					},
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (!isProjectMember) {
+				throw new Error('Usuário informado não é membro do projeto.');
+			}
+		}
+
+		if (userId !== undefined) {
+			data.collaborations = userId
+				? {
+					deleteMany: {},
+					create: [
+						{
+							userId,
+						},
+					],
+				}
+				: {
+					deleteMany: {},
+				};
+		}
+
+		const updatedTask = await this.prisma.task.update({
 			where: {
 				id: taskId,
 			},
 			data,
 			include: {
 				categories: true,
+				collaborations: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+							},
+						},
+					},
+				},
 			},
 		});
+
+		return this.mapTaskWithAssignment(updatedTask);
 	}
 
 	async delete(taskId) {

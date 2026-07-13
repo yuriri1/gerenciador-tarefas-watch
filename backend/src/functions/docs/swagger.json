@@ -22,7 +22,7 @@
 		},
 		{
 			"name": "Tarefas",
-			"description": "Gestão de tarefas e status do Kanban."
+			"description": "Gestão de tarefas."
 		},
 		{
 			"name": "Categorias",
@@ -82,6 +82,16 @@
 					"creatorId": { "type": "string" },
 					"createdAt": { "type": "string", "format": "date-time" },
 					"updatedAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ProjectMember": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"projectId": { "type": "string" },
+					"userId": { "type": "string" },
+					"joinedAt": { "type": "string", "format": "date-time" },
+					"user": { "$ref": "#/components/schemas/User" }
 				}
 			},
 			"Category": {
@@ -297,7 +307,7 @@
 								"properties": {
 									"name": {
 										"type": "string",
-										"example": "Meu Primeiro Projeto Kanban"
+										"example": "Meu Primeiro Projeto"
 									},
 									"description": {
 										"type": "string",
@@ -404,9 +414,65 @@
 				}
 			}
 		},
+		"/projects/{id}/members": {
+			"post": {
+				"summary": "Adicionar membro ao projeto",
+				"tags": [
+					"Projetos"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"email"
+								],
+								"properties": {
+									"email": {
+										"type": "string",
+										"example": "membro@exemplo.com"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Membro adicionado ao projeto com sucesso."
+					},
+					"403": {
+						"description": "Sem permissão para adicionar membros a este projeto."
+					},
+					"404": {
+						"description": "Projeto ou usuário não encontrado."
+					},
+					"409": {
+						"description": "Usuário já é membro deste projeto."
+					}
+				}
+			}
+		},
 		"/projects/{projectId}/tasks": {
 			"get": {
-				"summary": "Listar tarefas de um projeto (Alimenta o Kanban)",
+				"summary": "Listar tarefas de um projeto",
 				"tags": [
 					"Tarefas"
 				],
@@ -646,7 +712,7 @@
 		},
 		"/tasks": {
 			"post": {
-				"summary": "Criar uma nova tarefa no Kanban",
+				"summary": "Criar uma nova tarefa no workspace",
 				"tags": [
 					"Tarefas"
 				],

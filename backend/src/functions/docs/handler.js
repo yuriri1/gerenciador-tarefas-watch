@@ -16,7 +16,7 @@ export const swagger = async (event) => {
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>API Docs - Kanban Serverless</title>
+        <title>API Docs</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css" />
       </head>
       <body>

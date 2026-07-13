@@ -50,6 +50,17 @@ export const useProjectStore = defineStore('projects', {
         console.error('Erro ao deletar workspace:', error.response?.data || error.message);
         throw error;
       }
+    },
+
+    async addWorkspaceMember(projectId, email) {
+      try {
+        const response = await api.post(`/projects/${projectId}/members`, { email });
+
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao adicionar membro:', error.response?.data || error.message);
+        throw error;
+      }
     }
   }
 });

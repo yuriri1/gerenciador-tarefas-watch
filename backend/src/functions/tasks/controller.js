@@ -14,7 +14,14 @@ export class TaskController {
 
   async handleCreate(userId, body = {}) {
     try {
-      const { title, description, projectId, categoryIds } = body;
+      const {
+        title,
+        description,
+        projectId,
+        categoryIds,
+        userId: assignedUserId,
+        UserId,
+      } = body;
 
       if (!title || typeof title !== 'string' || !title.trim()) {
         return buildResponse(400, {
@@ -33,6 +40,7 @@ export class TaskController {
         description: typeof description === 'string' ? description.trim() : description,
         projectId,
         categoryIds: Array.isArray(categoryIds) ? categoryIds : [],
+        userId: assignedUserId ?? UserId,
       });
 
       return buildResponse(201, {
@@ -42,6 +50,12 @@ export class TaskController {
     } catch (error) {
       if (error?.message === 'Projeto não encontrado.') {
         return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
+      if (error?.message === 'Usuário informado não é membro do projeto.') {
+        return buildResponse(400, {
           message: error.message,
         });
       }
@@ -129,7 +143,14 @@ export class TaskController {
 
   async handleUpdate(taskId, body = {}) {
     try {
-      const { title, description, status, categoryIds } = body;
+      const {
+        title,
+        description,
+        status,
+        categoryIds,
+        userId,
+        UserId,
+      } = body;
 
       if (!title || typeof title !== 'string' || !title.trim()) {
         return buildResponse(400, {
@@ -148,6 +169,7 @@ export class TaskController {
         description: typeof description === 'string' ? description.trim() : description,
         status,
         categoryIds: Array.isArray(categoryIds) ? categoryIds : [],
+        userId: userId ?? UserId,
       });
 
       return buildResponse(200, {
@@ -157,6 +179,12 @@ export class TaskController {
     } catch (error) {
       if (error?.message === 'Tarefa não encontrada.') {
         return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
+      if (error?.message === 'Usuário informado não é membro do projeto.') {
+        return buildResponse(400, {
           message: error.message,
         });
       }
