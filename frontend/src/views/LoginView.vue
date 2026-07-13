@@ -5,7 +5,7 @@
         <v-card class="elevation-12 rounded-lg pa-4">
           <v-card-item class="justify-center text-center">
             <v-icon icon="mdi-checkbox-marked-circle-outline" size="large" color="primary" class="mb-2"></v-icon>
-            <v-card-title class="text-h5 font-weight-bold">Acessar Kanban</v-card-title>
+            <v-card-title class="text-h5 font-weight-bold">Acessar Gerenciador de Tarefas</v-card-title>
             <v-card-subtitle>Entre com suas credenciais para continuar</v-card-subtitle>
           </v-card-item>
 
