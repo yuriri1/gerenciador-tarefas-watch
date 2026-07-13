@@ -46,20 +46,20 @@ describe('AuthService', () => {
 		bcryptMock.hash.mockResolvedValue('hashed-password');
 		prismaMock.user.create.mockResolvedValue({
 			id: 'user-1',
-			name: 'Ana',
+			name: 'ana silva',
 			email: 'ana@example.com',
 		});
 
 		const result = await service.register({
-			name: 'Ana',
-			email: 'ana@example.com',
+			name: 'Ana Silva',
+			email: 'ANA@EXAMPLE.COM',
 			password: '123456',
 		});
 
 		expect(bcryptMock.hash).toHaveBeenCalledWith('123456', 10);
 		expect(prismaMock.user.create).toHaveBeenCalledWith({
 			data: {
-				name: 'Ana',
+				name: 'ana silva',
 				email: 'ana@example.com',
 				password: 'hashed-password',
 			},
@@ -71,7 +71,7 @@ describe('AuthService', () => {
 		});
 		expect(result).toEqual({
 			id: 'user-1',
-			name: 'Ana',
+			name: 'ana silva',
 			email: 'ana@example.com',
 		});
 	});
@@ -107,6 +107,15 @@ describe('AuthService', () => {
 		});
 
 		expect(bcryptMock.compare).toHaveBeenCalledWith('123456', 'hashed-password');
+		expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+			where: { email: 'ana@example.com' },
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				password: true,
+			},
+		});
 		expect(jwtMock.sign).toHaveBeenCalledWith(
 			{
 				sub: 'user-1',
@@ -171,7 +180,7 @@ describe('AuthService', () => {
 			.mockResolvedValueOnce(null);
 		prismaMock.user.update.mockResolvedValue({
 			id: 'user-1',
-			name: 'Ana Silva',
+			name: 'ana silva',
 			email: 'ana.silva@example.com',
 			createdAt: new Date('2026-01-01T00:00:00.000Z'),
 			updatedAt: new Date('2026-01-03T00:00:00.000Z'),
@@ -179,13 +188,13 @@ describe('AuthService', () => {
 
 		const result = await service.updateProfile('user-1', {
 			name: 'Ana Silva',
-			email: 'ana.silva@example.com',
+			email: 'ANA.SILVA@EXAMPLE.COM',
 		});
 
 		expect(prismaMock.user.update).toHaveBeenCalledWith({
 			where: { id: 'user-1' },
 			data: {
-				name: 'Ana Silva',
+				name: 'ana silva',
 				email: 'ana.silva@example.com',
 			},
 			select: {
@@ -198,7 +207,7 @@ describe('AuthService', () => {
 		});
 		expect(result).toMatchObject({
 			id: 'user-1',
-			name: 'Ana Silva',
+			name: 'ana silva',
 			email: 'ana.silva@example.com',
 		});
 	});

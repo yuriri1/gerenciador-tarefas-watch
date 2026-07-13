@@ -1,4 +1,5 @@
 import prisma from '../../config/prisma.js';
+import { normalizeLowercaseString } from '../../utils/text.js';
 
 export class CategoryService {
 	constructor(database = prisma) {
@@ -8,7 +9,7 @@ export class CategoryService {
 	async create({ name, color }) {
 		return this.prisma.category.create({
 			data: {
-				name,
+				name: normalizeLowercaseString(name),
 				color,
 			},
 		});

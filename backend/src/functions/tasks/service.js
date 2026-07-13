@@ -1,4 +1,8 @@
 import prisma from '../../config/prisma.js';
+import {
+	normalizeLowercaseString,
+	normalizeNullableLowercaseString,
+} from '../../utils/text.js';
 
 export class TaskService {
 	constructor(database = prisma) {
@@ -28,8 +32,8 @@ export class TaskService {
 
 		return this.prisma.task.create({
 			data: {
-				title,
-				description: description || null,
+				title: normalizeLowercaseString(title),
+				description: normalizeNullableLowercaseString(description),
 				project: {
 					connect: {
 						id: projectId,
@@ -133,12 +137,12 @@ export class TaskService {
 		}
 
 		const data = {
-			title,
+			title: normalizeLowercaseString(title),
 			status,
 		};
 
 		if (description !== undefined) {
-			data.description = description === '' ? null : description;
+			data.description = normalizeNullableLowercaseString(description);
 		}
 
 		if (Array.isArray(categoryIds)) {

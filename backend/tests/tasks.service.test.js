@@ -33,16 +33,16 @@ describe('TaskService', () => {
 		const service = new TaskService(prismaMock);
 
 		const result = await service.create('user-1', {
-			title: 'Task',
-			description: 'Desc',
+			title: 'Task Alpha',
+			description: 'Desc Here',
 			projectId: 'project-1',
 			categoryIds: ['cat-1', 'cat-2'],
 		});
 
 		expect(prismaMock.task.create).toHaveBeenCalledWith({
 			data: {
-				title: 'Task',
-				description: 'Desc',
+				title: 'task alpha',
+				description: 'desc here',
 				project: {
 					connect: {
 						id: 'project-1',
@@ -71,7 +71,7 @@ describe('TaskService', () => {
 		await expect(
 			service.create('user-1', {
 				title: 'Task',
-				description: 'Desc',
+				description: 'Desc Here',
 				projectId: 'project-inexistente',
 			}),
 		).rejects.toThrow('Projeto não encontrado.');
@@ -158,8 +158,8 @@ describe('TaskService', () => {
 		const service = new TaskService(prismaMock);
 
 		const result = await service.update('task-1', {
-			title: 'Nova task',
-			description: 'Nova desc',
+			title: 'Nova Task',
+			description: 'Nova Desc',
 			status: 'COMPLETED',
 			categoryIds: ['cat-1', 'cat-2'],
 		});
@@ -167,9 +167,9 @@ describe('TaskService', () => {
 		expect(prismaMock.task.update).toHaveBeenCalledWith({
 			where: { id: 'task-1' },
 			data: {
-				title: 'Nova task',
+				title: 'nova task',
 				status: 'COMPLETED',
-				description: 'Nova desc',
+				description: 'nova desc',
 				categories: {
 					set: [{ id: 'cat-1' }, { id: 'cat-2' }],
 				},

@@ -1,4 +1,8 @@
 import prisma from '../../config/prisma.js';
+import {
+  normalizeLowercaseString,
+  normalizeNullableLowercaseString,
+} from '../../utils/text.js';
 
 export class ProjectService {
   constructor(database = prisma) {
@@ -9,8 +13,8 @@ export class ProjectService {
     return this.prisma.$transaction(async (transaction) => {
       const project = await transaction.project.create({
         data: {
-          name,
-          description: description || null,
+          name: normalizeLowercaseString(name),
+          description: normalizeNullableLowercaseString(description),
           creatorId: userId,
         },
       });
@@ -88,11 +92,11 @@ export class ProjectService {
     const data = {};
 
     if (typeof name === 'string') {
-      data.name = name;
+      data.name = normalizeLowercaseString(name);
     }
 
     if (description !== undefined) {
-      data.description = description === '' ? null : description;
+      data.description = normalizeNullableLowercaseString(description);
     }
 
     return this.prisma.project.update({

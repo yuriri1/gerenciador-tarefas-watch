@@ -31,7 +31,7 @@ describe('CategoryService', () => {
 
 		expect(prismaMock.category.create).toHaveBeenCalledWith({
 			data: {
-				name: 'Urgente',
+				name: 'urgente',
 				color: '#FF0000',
 			},
 		});

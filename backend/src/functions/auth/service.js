@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../../config/prisma.js';
+import {
+  normalizeLowercaseString,
+} from '../../utils/text.js';
 
 function createAuthError(message, statusCode) {
   const error = new Error(message);
@@ -33,6 +36,9 @@ export class AuthService {
   }
 
   async updateProfile(userId, { name, email }) {
+    const normalizedEmail = normalizeLowercaseString(email);
+    const normalizedName = normalizeLowercaseString(name);
+
     const currentUser = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -45,9 +51,9 @@ export class AuthService {
       throw createAuthError('USER_NOT_FOUND', 404);
     }
 
-    if (email && email !== currentUser.email) {
+    if (normalizedEmail && normalizedEmail !== currentUser.email?.toLowerCase()) {
       const existingUser = await this.prisma.user.findUnique({
-        where: { email },
+        where: { email: normalizedEmail },
         select: { id: true },
       });
 
@@ -58,12 +64,12 @@ export class AuthService {
 
     const data = {};
 
-    if (typeof name === 'string') {
-      data.name = name;
+    if (typeof normalizedName === 'string') {
+      data.name = normalizedName;
     }
 
-    if (typeof email === 'string') {
-      data.email = email;
+    if (typeof normalizedEmail === 'string') {
+      data.email = normalizedEmail;
     }
 
     return this.prisma.user.update({
@@ -80,8 +86,11 @@ export class AuthService {
   }
 
   async register({ name, email, password }) {
+    const normalizedEmail = normalizeLowercaseString(email);
+    const normalizedName = normalizeLowercaseString(name);
+
     const existingUser = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -92,8 +101,8 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
-        name,
-        email,
+        name: normalizedName,
+        email: normalizedEmail,
         password: hashedPassword,
       },
       select: {
@@ -107,8 +116,10 @@ export class AuthService {
   }
 
   async login({ email, password }) {
+    const normalizedEmail = normalizeLowercaseString(email);
+
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
       select: {
         id: true,
         name: true,

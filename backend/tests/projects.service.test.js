@@ -38,14 +38,14 @@ describe('ProjectService', () => {
 
 		const service = new ProjectService(prismaMock);
 		const result = await service.create('user-1', {
-			name: 'Project',
-			description: 'Description',
+			name: 'Project Alpha',
+			description: 'Description Here',
 		});
 
 		expect(transaction.project.create).toHaveBeenCalledWith({
 			data: {
-				name: 'Project',
-				description: 'Description',
+				name: 'project alpha',
+				description: 'description here',
 				creatorId: 'user-1',
 			},
 		});
@@ -99,15 +99,15 @@ describe('ProjectService', () => {
 		const service = new ProjectService(prismaMock);
 
 		const result = await service.update('project-1', 'user-1', {
-			name: 'Novo nome',
-			description: 'Nova descrição',
+			name: 'Novo Nome',
+			description: 'Nova Descrição',
 		});
 
 		expect(prismaMock.project.update).toHaveBeenCalledWith({
 			where: { id: 'project-1' },
 			data: {
-				name: 'Novo nome',
-				description: 'Nova descrição',
+				name: 'novo nome',
+				description: 'nova descrição',
 			},
 		});
 		expect(result).toEqual({ id: 'project-1', name: 'Novo nome' });
