@@ -14,7 +14,7 @@
       ghost-class="ghost-card" @change="handleMove">
       <template #item="{ element }">
         <div class="draggable-item-wrapper">
-          <TaskCard :task="element" />
+          <TaskCard :task="element" @open-edit="$emit('open-edit', $event)"/>
         </div>
       </template>
     </Draggable>
@@ -33,14 +33,12 @@ const props = defineProps({
   tasks: { type: Array, required: true }
 });
 
-const emit = defineEmits(['status-updated']);
+const emit = defineEmits(['status-updated', 'open-edit']);
 const taskStore = useTaskStore();
 
 const localTasks = computed({
   get: () => props.tasks,
-  set: (value) => {
-    // Mantém a sincronização reativa estável
-  }
+  set: (value) => {}
 });
 
 const handleMove = async (event) => {

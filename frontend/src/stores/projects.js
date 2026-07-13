@@ -39,6 +39,17 @@ export const useProjectStore = defineStore('projects', {
         console.error('Erro ao criar projeto:', error.response?.data || error.message);
         throw error;
       }
+    },
+
+    async deleteProject(projectId) {
+      try {
+        await api.delete(`/projects/${projectId}`);
+        this.projects = this.projects.filter(p => p.id !== projectId);
+        return true;
+      } catch (error) {
+        console.error('Erro ao deletar workspace:', error.response?.data || error.message);
+        throw error;
+      }
     }
   }
 });

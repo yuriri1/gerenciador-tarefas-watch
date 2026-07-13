@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mb-3 rounded-lg elevation-2 cursor-grab" variant="flat" border>
+  <v-card class="mb-3 rounded-lg elevation-2 cursor-pointer transition-all" variant="flat" border @click="$emit('open-edit', task)">
     <v-card-item class="pb-1">
       <v-card-title class="text-subtitle-1 font-weight-bold">
         {{ task.title }}
@@ -26,6 +26,8 @@
 </template>
 
 <script setup>
+defineEmits(['open-edit']);
+
 defineProps({
   task: {
     type: Object,

@@ -57,6 +57,39 @@ export const useTaskStore = defineStore('tasks', {
         console.error('Erro ao criar tarefa:', error.response?.data || error.message);
         throw error;
       }
+    },
+
+    async updateTaskDetails(taskId, { title, description, categoryIds, status }) {
+      try {
+        const response = await api.patch(`/tasks/${taskId}`, { 
+          title, 
+          description, 
+          status,
+          categoryIds
+        });
+        
+        const updatedTask = response.data.task || response.data;
+        
+        const index = this.tasks.findIndex(t => t.id === taskId);
+        if (index !== -1) {
+          this.tasks[index] = { ...this.tasks[index], ...updatedTask };
+        }
+        return updatedTask;
+      } catch (error) {
+        console.error('Erro ao atualizar detalhes da tarefa:', error.response?.data || error.message);
+        throw error;
+      }
+    },
+
+    async deleteTask(taskId) {
+      try {
+        await api.delete(`/tasks/${taskId}`);
+        this.tasks = this.tasks.filter(t => t.id !== taskId);
+        return true;
+      } catch (error) {
+        console.error('Erro ao deletar tarefa:', error.response?.data || error.message);
+        throw error;
+      }
     }
   }
 });
