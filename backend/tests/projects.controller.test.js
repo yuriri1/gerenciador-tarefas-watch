@@ -16,6 +16,7 @@ describe('ProjectController', () => {
 			listAllFromUser: jest.fn(),
 			update: jest.fn(),
 			delete: jest.fn(),
+			addMember: jest.fn(),
 		};
 		controller = new ProjectController(service);
 		jest.clearAllMocks();
@@ -94,6 +95,58 @@ describe('ProjectController', () => {
 			body: {
 				message: 'Projeto excluído com sucesso.',
 				project: { id: 'project-1' },
+			},
+		});
+	});
+
+	test('handleAddMember retorna 400 quando email está faltando', async () => {
+		const response = await controller.handleAddMember('project-1', 'user-1', {});
+
+		expect(response).toEqual({
+			statusCode: 400,
+			body: {
+				message: 'O campo email é obrigatório.',
+			},
+		});
+		expect(service.addMember).not.toHaveBeenCalled();
+	});
+
+	test('handleAddMember retorna 201 quando o membro é adicionado', async () => {
+		service.addMember.mockResolvedValue({
+			id: 'membership-1',
+			user: { id: 'user-2', name: 'Member', email: 'member@example.com' },
+		});
+
+		const response = await controller.handleAddMember('project-1', 'user-1', {
+			email: ' member@example.com ',
+		});
+
+		expect(service.addMember).toHaveBeenCalledWith('project-1', 'user-1', {
+			email: 'member@example.com',
+		});
+		expect(response).toEqual({
+			statusCode: 201,
+			body: {
+				message: 'Membro adicionado ao projeto com sucesso.',
+				member: {
+					id: 'membership-1',
+					user: { id: 'user-2', name: 'Member', email: 'member@example.com' },
+				},
+			},
+		});
+	});
+
+	test('handleAddMember retorna 409 quando o usuário já é membro', async () => {
+		service.addMember.mockRejectedValue(new Error('Usuário já é membro deste projeto.'));
+
+		const response = await controller.handleAddMember('project-1', 'user-1', {
+			email: 'member@example.com',
+		});
+
+		expect(response).toEqual({
+			statusCode: 409,
+			body: {
+				message: 'Usuário já é membro deste projeto.',
 			},
 		});
 	});

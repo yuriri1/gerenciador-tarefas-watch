@@ -110,7 +110,7 @@ describe('categories handler', () => {
 					user: { userId: 'user-1' },
 				},
 			},
-			body: '{invalid-json',
+			body: '{invalid-json}',
 		});
 
 		expect(controllerMock.handleCreate).not.toHaveBeenCalled();

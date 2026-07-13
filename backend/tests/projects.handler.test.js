@@ -5,6 +5,7 @@ const controllerMock = {
 	handleList: jest.fn(),
 	handleUpdate: jest.fn(),
 	handleDelete: jest.fn(),
+	handleAddMember: jest.fn(),
 };
 
 await jest.unstable_mockModule('../src/middleware/auth.js', () => ({
@@ -28,10 +29,14 @@ await jest.unstable_mockModule('../src/functions/projects/controller.js', () => 
 			handleDelete(...args) {
 				return controllerMock.handleDelete(...args);
 			}
+
+			handleAddMember(...args) {
+				return controllerMock.handleAddMember(...args);
+			}
 	},
 }));
 
-const { create, list, update, remove } = await import('../src/functions/projects/handler.js');
+const { create, list, update, remove, addMember } = await import('../src/functions/projects/handler.js');
 
 describe('projects handler', () => {
 	beforeEach(() => {
@@ -133,6 +138,53 @@ describe('projects handler', () => {
 		expect(response).toEqual({
 			statusCode: 200,
 			body: JSON.stringify({ message: 'deleted' }),
+		});
+	});
+
+	test('addMember encaminha o id do projeto, o userId e o corpo da requisição', async () => {
+		controllerMock.handleAddMember.mockResolvedValue({
+			statusCode: 201,
+			body: { message: 'member added' },
+		});
+
+		const response = await addMember({
+			requestContext: {
+				authorizer: {
+					user: { userId: 'user-1' },
+				},
+			},
+			pathParameters: {
+				id: 'project-1',
+			},
+			body: JSON.stringify({ email: 'member@example.com' }),
+		});
+
+		expect(controllerMock.handleAddMember).toHaveBeenCalledWith('project-1', 'user-1', {
+			email: 'member@example.com',
+		});
+		expect(response).toEqual({
+			statusCode: 201,
+			body: JSON.stringify({ message: 'member added' }),
+		});
+	});
+
+	test('addMember retorna 400 quando o corpo JSON é inválido', async () => {
+		const response = await addMember({
+			requestContext: {
+				authorizer: {
+					user: { userId: 'user-1' },
+				},
+			},
+			pathParameters: {
+				id: 'project-1',
+			},
+			body: '{invalid-json}',
+		});
+
+		expect(controllerMock.handleAddMember).not.toHaveBeenCalled();
+		expect(response).toEqual({
+			statusCode: 400,
+			body: JSON.stringify({ message: 'Corpo da requisição inválido.' }),
 		});
 	});
 });
