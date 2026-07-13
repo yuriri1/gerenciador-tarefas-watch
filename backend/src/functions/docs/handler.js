@@ -1,15 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Importa o JSON diretamente (o ESBuild vai embutir o conteúdo automaticamente)
+import swaggerSpec from './swagger.json' assert { type: 'json' };
 
 export const swagger = async (event) => {
   try {
-    const specPath = path.join(__dirname, 'swagger.json');
-    const swaggerSpec = fs.readFileSync(specPath, 'utf8');
-
     const html = `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -26,7 +19,7 @@ export const swagger = async (event) => {
         <script>
           window.onload = () => {
             window.ui = SwaggerUIBundle({
-              spec: ${swaggerSpec},
+              spec: ${JSON.stringify(swaggerSpec)},
               dom_id: '#swagger-ui',
               deepLinking: true,
               presets: [
