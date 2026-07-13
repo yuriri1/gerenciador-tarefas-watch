@@ -10,6 +10,12 @@
       {{ task.description || 'Sem descrição fornecida.' }}
     </v-card-text>
 
+    <v-card-actions v-if="assigneeName" class="pt-0 px-4 pb-2">
+      <v-chip size="x-small" color="grey-darken-1" variant="tonal" prepend-icon="mdi-account-outline">
+        {{ assigneeName }}
+      </v-chip>
+    </v-card-actions>
+
     <v-card-actions v-if="task.categories && task.categories.length > 0" class="pt-0 px-4 flex-wrap">
       <v-chip
         v-for="cat in task.categories"
@@ -26,13 +32,20 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+
 defineEmits(['open-edit']);
 
-defineProps({
+const props = defineProps({
   task: {
     type: Object,
     required: true
   }
+});
+
+const assigneeName = computed(() => {
+  const collaboration = props.task.collaborations?.[0];
+  return collaboration?.user?.name || null;
 });
 </script>
 

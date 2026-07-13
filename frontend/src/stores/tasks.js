@@ -8,8 +8,8 @@ export const useTaskStore = defineStore('tasks', {
   }),
 
   actions: {
-    async fetchTasks(projectId) {
-      this.loading = true;
+    async fetchTasks(projectId, silent = false) {
+      if (!silent) this.loading = true;
       try {
         const response = await api.get(`/projects/${projectId}/tasks`);
         
@@ -25,7 +25,7 @@ export const useTaskStore = defineStore('tasks', {
         this.tasks = [];
         throw error;
       } finally {
-        this.loading = false;
+        if (!silent) this.loading = false;
       }
     },
 
@@ -40,13 +40,14 @@ export const useTaskStore = defineStore('tasks', {
       }
     },
 
-    async createTask(projectId, title, description) {
+    async createTask(projectId, title, description, userId = null) {
       try {
         const response = await api.post('/tasks', { 
           title, 
           description, 
           projectId,
-          categoryIds: []
+          categoryIds: [],
+          ...(userId ? { userId } : {}),
         });
         
         const newTask = response.data.task || response.data;

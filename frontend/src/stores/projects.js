@@ -55,8 +55,22 @@ export const useProjectStore = defineStore('projects', {
     async addWorkspaceMember(projectId, email) {
       try {
         const response = await api.post(`/projects/${projectId}/members`, { email });
+        const newMember = response.data.member || response.data;
 
-        return response.data;
+        const project = this.projects.find(p => p.id === projectId);
+        if (project && newMember) {
+          if (!Array.isArray(project.members)) {
+            project.members = [];
+          }
+          const alreadyExists = project.members.some(
+            m => (m.user?.id || m.userId) === (newMember.user?.id || newMember.userId)
+          );
+          if (!alreadyExists) {
+            project.members.push(newMember);
+          }
+        }
+
+        return newMember;
       } catch (error) {
         console.error('Erro ao adicionar membro:', error.response?.data || error.message);
         throw error;

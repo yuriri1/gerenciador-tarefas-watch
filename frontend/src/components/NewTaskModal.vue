@@ -19,6 +19,17 @@
             variant="outlined"
             rows="3"
           ></v-textarea>
+
+          <v-select
+            v-model="selectedUserId"
+            :items="workspaceMembers"
+            item-title="name"
+            item-value="id"
+            label="Responsável pela Tarefa"
+            variant="outlined"
+            prepend-inner-icon="mdi-account-outline"
+            clearable
+          ></v-select>
         </v-form>
       </v-card-text>
 
@@ -36,8 +47,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useTaskStore } from '../stores/tasks';
+import { useProjectStore } from '../stores/projects';
 
 const props = defineProps({
   modelValue: Boolean,
@@ -46,18 +58,42 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'show-toast']);
 const taskStore = useTaskStore();
+const projectStore = useProjectStore();
 
 const formRef = ref(null);
 const isFormValid = ref(false);
 const title = ref('');
 const description = ref('');
+const selectedUserId = ref(null);
 const loading = ref(false);
+
+const workspaceMembers = computed(() => {
+  const currentProject = projectStore.projects.find(p => p.id === props.projectId);
+
+  if (!currentProject?.members) return [];
+
+  return currentProject.members.map(member => ({
+    id: member.user?.id || member.userId,
+    name: member.user?.name || 'Usuário Sem Nome'
+  }));
+});
+
+watch(() => props.modelValue, async (isOpen) => {
+  if (isOpen) {
+    await projectStore.fetchProjects();
+  }
+});
 
 const submitTask = async () => {
   if (!isFormValid.value) return;
   loading.value = true;
   try {
-    await taskStore.createTask(props.projectId, title.value, description.value);
+    await taskStore.createTask(
+      props.projectId,
+      title.value,
+      description.value,
+      selectedUserId.value || null
+    );
     emit('show-toast', { message: 'Tarefa adicionada com sucesso!', color: 'success' });
     closeDialog();
   } catch (error) {
@@ -72,6 +108,7 @@ const closeDialog = () => {
   emit('update:modelValue', false);
   title.value = '';
   description.value = '';
+  selectedUserId.value = null;
   formRef.value?.resetValidation();
 };
 </script>

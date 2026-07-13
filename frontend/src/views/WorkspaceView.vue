@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useTaskStore } from '../stores/tasks';
 import TaskColumn from '../components/TaskColumn.vue';
 import NewTaskModal from '../components/NewTaskModal.vue';
@@ -101,19 +101,53 @@ const workspaceDeleteLoading = ref(false);
 
 const isMembersModalOpen = ref(false);
 
+let pollingInterval = null;
+
+onMounted(() => {
+  loadWorkspaceData();
+  startPolling();
+});
+
+watch(() => props.id, () => {
+  loadWorkspaceData();
+  startPolling();
+});
+
+onUnmounted(() => {
+  stopPolling();
+});
+
 const loadWorkspaceData = async () => {
   if (props.id) {
     try {
-      await taskStore.fetchTasks(props.id);
+      await taskStore.fetchTasks(props.id, false);
     } catch (error) {
       forwardToast({ message: 'Falha ao sincronizar as tarefas.', color: 'error' });
     }
   }
 };
 
-onMounted(loadWorkspaceData);
+const syncBackgroundData = async () => {
+  if (document.visibilityState === 'visible' && props.id) {
+    try {
+      await taskStore.fetchTasks(props.id, true);
+    } catch (e) {
+      console.log('Sincronização em background falhou silenciosamente.');
+    }
+  }
+};
 
-watch(() => props.id, loadWorkspaceData);
+const startPolling = () => {
+  stopPolling();
+  pollingInterval = setInterval(syncBackgroundData, 5000);
+};
+
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+};
 
 const forwardToast = (options) => {
   emit('show-toast', options);

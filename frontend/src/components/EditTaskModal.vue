@@ -107,20 +107,13 @@ watch(() => props.modelValue, async (isOpen) => {
         editedTitle.value = props.task.title;
         editedDescription.value = props.task.description || '';
         selectedCategoryIds.value = props.task.categories?.map(c => c.id) || [];
+        selectedUserId.value = props.task.assignedUserId || null;
 
-        await categoryStore.fetchCategories();
+        await Promise.all([
+            categoryStore.fetchCategories(),
+            projectStore.fetchProjects(),
+        ]);
     }
-});
-
-watch(() => props.modelValue, async (isOpen) => {
-  if (isOpen && props.task) {
-    editedTitle.value = props.task.title;
-    editedDescription.value = props.task.description || '';
-    selectedCategoryIds.value = props.task.categories?.map(c => c.id) || [];
-    selectedUserId.value = props.task.assignedUserId || null;
-    
-    await categoryStore.fetchCategories();
-  }
 });
 
 const handleCreateCategory = async () => {
@@ -161,7 +154,7 @@ const handleSave = async () => {
             description: editedDescription.value,
             status: props.task.status,
             categoryIds: selectedCategoryIds.value,
-            UserId: selectedUserId.value || null
+            userId: selectedUserId.value || null
         });
         emit('show-toast', { message: 'Tarefa atualizada com sucesso!', color: 'success' });
         closeDialog();
