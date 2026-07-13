@@ -4,6 +4,9 @@ const controllerMock = {
 	handleCreate: jest.fn(),
 	handleListByProject: jest.fn(),
 	handleUpdateStatus: jest.fn(),
+	handleGetById: jest.fn(),
+	handleUpdate: jest.fn(),
+	handleDelete: jest.fn(),
 };
 
 await jest.unstable_mockModule('../src/middleware/auth.js', () => ({
@@ -23,10 +26,22 @@ await jest.unstable_mockModule('../src/functions/tasks/controller.js', () => ({
 		handleUpdateStatus(...args) {
 			return controllerMock.handleUpdateStatus(...args);
 		}
+
+			handleGetById(...args) {
+				return controllerMock.handleGetById(...args);
+			}
+
+			handleUpdate(...args) {
+				return controllerMock.handleUpdate(...args);
+			}
+
+			handleDelete(...args) {
+				return controllerMock.handleDelete(...args);
+			}
 	},
 }));
 
-const { create, list, updateStatus } = await import('../src/functions/tasks/handler.js');
+const { create, list, updateStatus, getById, update, remove } = await import('../src/functions/tasks/handler.js');
 
 describe('tasks handler', () => {
 	beforeEach(() => {
@@ -109,6 +124,89 @@ describe('tasks handler', () => {
 		expect(response).toEqual({
 			statusCode: 200,
 			body: JSON.stringify({ message: 'updated' }),
+		});
+	});
+
+	test('getById encaminha o id da tarefa e formata a resposta', async () => {
+		controllerMock.handleGetById.mockResolvedValue({
+			statusCode: 200,
+			body: { task: { id: 'task-1' } },
+		});
+
+		const response = await getById({
+			requestContext: {
+				authorizer: {
+					user: { userId: 'user-1' },
+				},
+			},
+			pathParameters: {
+				id: 'task-1',
+			},
+		});
+
+		expect(controllerMock.handleGetById).toHaveBeenCalledWith('task-1');
+		expect(response).toEqual({
+			statusCode: 200,
+			body: JSON.stringify({ task: { id: 'task-1' } }),
+		});
+	});
+
+	test('update encaminha o id da tarefa e o corpo completo', async () => {
+		controllerMock.handleUpdate.mockResolvedValue({
+			statusCode: 200,
+			body: { message: 'updated' },
+		});
+
+		const response = await update({
+			requestContext: {
+				authorizer: {
+					user: { userId: 'user-1' },
+				},
+			},
+			pathParameters: {
+				id: 'task-1',
+			},
+			body: JSON.stringify({
+				title: 'Task',
+				description: 'Desc',
+				status: 'COMPLETED',
+				categoryIds: ['cat-1'],
+			}),
+		});
+
+		expect(controllerMock.handleUpdate).toHaveBeenCalledWith('task-1', {
+			title: 'Task',
+			description: 'Desc',
+			status: 'COMPLETED',
+			categoryIds: ['cat-1'],
+		});
+		expect(response).toEqual({
+			statusCode: 200,
+			body: JSON.stringify({ message: 'updated' }),
+		});
+	});
+
+	test('remove encaminha o id da tarefa e formata a resposta', async () => {
+		controllerMock.handleDelete.mockResolvedValue({
+			statusCode: 200,
+			body: { message: 'deleted' },
+		});
+
+		const response = await remove({
+			requestContext: {
+				authorizer: {
+					user: { userId: 'user-1' },
+				},
+			},
+			pathParameters: {
+				id: 'task-1',
+			},
+		});
+
+		expect(controllerMock.handleDelete).toHaveBeenCalledWith('task-1');
+		expect(response).toEqual({
+			statusCode: 200,
+			body: JSON.stringify({ message: 'deleted' }),
 		});
 	});
 });

@@ -14,6 +14,8 @@ describe('ProjectController', () => {
 		service = {
 			create: jest.fn(),
 			listAllFromUser: jest.fn(),
+			update: jest.fn(),
+			delete: jest.fn(),
 		};
 		controller = new ProjectController(service);
 		jest.clearAllMocks();
@@ -62,6 +64,36 @@ describe('ProjectController', () => {
 			statusCode: 200,
 			body: {
 				projects: [{ id: 'project-1' }],
+			},
+		});
+	});
+
+	test('handleUpdate retorna 403 quando o usuário não é o criador', async () => {
+		service.update.mockRejectedValue(new Error('Sem permissão para alterar este projeto.'));
+
+		const response = await controller.handleUpdate('project-1', 'user-1', {
+			name: 'Project',
+		});
+
+		expect(response).toEqual({
+			statusCode: 403,
+			body: {
+				message: 'Sem permissão para alterar este projeto.',
+			},
+		});
+	});
+
+	test('handleDelete retorna 200 quando o projeto é excluído', async () => {
+		service.delete.mockResolvedValue({ id: 'project-1' });
+
+		const response = await controller.handleDelete('project-1', 'user-1');
+
+		expect(service.delete).toHaveBeenCalledWith('project-1', 'user-1');
+		expect(response).toEqual({
+			statusCode: 200,
+			body: {
+				message: 'Projeto excluído com sucesso.',
+				project: { id: 'project-1' },
 			},
 		});
 	});

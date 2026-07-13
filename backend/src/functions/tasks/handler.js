@@ -117,3 +117,98 @@ export const updateStatus = withAuth(async (event) => {
     });
   }
 });
+
+export const getById = withAuth(async (event) => {
+  try {
+    const userId = event?.requestContext?.authorizer?.user?.userId;
+    const taskId = event?.pathParameters?.id;
+
+    if (!userId) {
+      return formatResponse({
+        statusCode: 401,
+        body: { message: 'Usuário não autenticado.' },
+      });
+    }
+
+    if (!taskId) {
+      return formatResponse({
+        statusCode: 400,
+        body: { message: 'O parâmetro id é obrigatório.' },
+      });
+    }
+
+    const response = await taskController.handleGetById(taskId);
+    return formatResponse(response);
+  } catch {
+    return formatResponse({
+      statusCode: 500,
+      body: { message: 'Erro interno do servidor.' },
+    });
+  }
+});
+
+export const update = withAuth(async (event) => {
+  try {
+    const userId = event?.requestContext?.authorizer?.user?.userId;
+    const taskId = event?.pathParameters?.id;
+    const body = parseBody(event);
+
+    if (!userId) {
+      return formatResponse({
+        statusCode: 401,
+        body: { message: 'Usuário não autenticado.' },
+      });
+    }
+
+    if (body === null) {
+      return formatResponse({
+        statusCode: 400,
+        body: { message: 'Corpo da requisição inválido.' },
+      });
+    }
+
+    if (!taskId) {
+      return formatResponse({
+        statusCode: 400,
+        body: { message: 'O parâmetro id é obrigatório.' },
+      });
+    }
+
+    const response = await taskController.handleUpdate(taskId, body);
+    return formatResponse(response);
+  } catch {
+    return formatResponse({
+      statusCode: 500,
+      body: { message: 'Erro interno do servidor.' },
+    });
+  }
+});
+
+export const remove = withAuth(async (event) => {
+  try {
+    const userId = event?.requestContext?.authorizer?.user?.userId;
+    const taskId = event?.pathParameters?.id;
+
+    if (!userId) {
+      return formatResponse({
+        statusCode: 401,
+        body: { message: 'Usuário não autenticado.' },
+      });
+    }
+
+    if (!taskId) {
+      return formatResponse({
+        statusCode: 400,
+        body: { message: 'O parâmetro id é obrigatório.' },
+      });
+    }
+
+    const response = await taskController.handleDelete(taskId);
+    return formatResponse(response);
+  } catch {
+    return formatResponse({
+      statusCode: 500,
+      body: { message: 'Erro interno do servidor.' },
+    });
+  }
+});

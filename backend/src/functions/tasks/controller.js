@@ -40,6 +40,12 @@ export class TaskController {
         task,
       });
     } catch (error) {
+      if (error?.message === 'Projeto não encontrado.') {
+        return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
       return buildResponse(400, {
         message: error?.message || 'Erro ao criar tarefa.',
       });
@@ -83,8 +89,107 @@ export class TaskController {
         task,
       });
     } catch (error) {
+      if (error?.message === 'Tarefa não encontrada.') {
+        return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
       return buildResponse(400, {
         message: error?.message || 'Erro ao atualizar status da tarefa.',
+      });
+    }
+  }
+
+  async handleGetById(taskId) {
+    try {
+      if (!taskId) {
+        return buildResponse(400, {
+          message: 'O parâmetro id é obrigatório.',
+        });
+      }
+
+      const task = await this.service.getById(taskId);
+
+      if (!task) {
+        return buildResponse(404, {
+          message: 'Tarefa não encontrada.',
+        });
+      }
+
+      return buildResponse(200, {
+        task,
+      });
+    } catch (error) {
+      return buildResponse(400, {
+        message: error?.message || 'Erro ao buscar tarefa.',
+      });
+    }
+  }
+
+  async handleUpdate(taskId, body = {}) {
+    try {
+      const { title, description, status, categoryIds } = body;
+
+      if (!title || typeof title !== 'string' || !title.trim()) {
+        return buildResponse(400, {
+          message: 'O campo title é obrigatório.',
+        });
+      }
+
+      if (!status) {
+        return buildResponse(400, {
+          message: 'O campo status é obrigatório.',
+        });
+      }
+
+      const task = await this.service.update(taskId, {
+        title: title.trim(),
+        description: typeof description === 'string' ? description.trim() : description,
+        status,
+        categoryIds: Array.isArray(categoryIds) ? categoryIds : [],
+      });
+
+      return buildResponse(200, {
+        message: 'Tarefa atualizada com sucesso.',
+        task,
+      });
+    } catch (error) {
+      if (error?.message === 'Tarefa não encontrada.') {
+        return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
+      return buildResponse(400, {
+        message: error?.message || 'Erro ao atualizar tarefa.',
+      });
+    }
+  }
+
+  async handleDelete(taskId) {
+    try {
+      if (!taskId) {
+        return buildResponse(400, {
+          message: 'O parâmetro id é obrigatório.',
+        });
+      }
+
+      const task = await this.service.delete(taskId);
+
+      return buildResponse(200, {
+        message: 'Tarefa excluída com sucesso.',
+        task,
+      });
+    } catch (error) {
+      if (error?.message === 'Tarefa não encontrada.') {
+        return buildResponse(404, {
+          message: error.message,
+        });
+      }
+
+      return buildResponse(400, {
+        message: error?.message || 'Erro ao excluir tarefa.',
       });
     }
   }

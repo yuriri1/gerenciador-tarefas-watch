@@ -1,0 +1,19 @@
+services:
+  backend:
+    build:
+      context: .
+      args:
+        DIRECT_URL: ${DIRECT_URL}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      SERVERLESS_ACCESS_KEY: ${SERVERLESS_ACCESS_KEY}
+      SERVERLESS_LICENSE_KEY: ${SERVERLESS_LICENSE_KEY}
+    command: sh -c "npx prisma generate && exec npx serverless offline --host 0.0.0.0"

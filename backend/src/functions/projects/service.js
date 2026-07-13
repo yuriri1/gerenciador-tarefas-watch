@@ -65,4 +65,67 @@ export class ProjectService {
       },
     });
   }
+
+  async update(projectId, userId, { name, description }) {
+    const project = await this.prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+      select: {
+        id: true,
+        creatorId: true,
+      },
+    });
+
+    if (!project) {
+      throw new Error('Projeto não encontrado.');
+    }
+
+    if (project.creatorId !== userId) {
+      throw new Error('Sem permissão para alterar este projeto.');
+    }
+
+    const data = {};
+
+    if (typeof name === 'string') {
+      data.name = name;
+    }
+
+    if (description !== undefined) {
+      data.description = description === '' ? null : description;
+    }
+
+    return this.prisma.project.update({
+      where: {
+        id: projectId,
+      },
+      data,
+    });
+  }
+
+  async delete(projectId, userId) {
+    const project = await this.prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+      select: {
+        id: true,
+        creatorId: true,
+      },
+    });
+
+    if (!project) {
+      throw new Error('Projeto não encontrado.');
+    }
+
+    if (project.creatorId !== userId) {
+      throw new Error('Sem permissão para excluir este projeto.');
+    }
+
+    return this.prisma.project.delete({
+      where: {
+        id: projectId,
+      },
+    });
+  }
 }

@@ -13,6 +13,72 @@ export class AuthService {
     this.prisma = database;
   }
 
+  async getProfile(userId) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw createAuthError('USER_NOT_FOUND', 404);
+    }
+
+    return user;
+  }
+
+  async updateProfile(userId, { name, email }) {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    if (!currentUser) {
+      throw createAuthError('USER_NOT_FOUND', 404);
+    }
+
+    if (email && email !== currentUser.email) {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        throw createAuthError('EMAIL_ALREADY_EXISTS', 400);
+      }
+    }
+
+    const data = {};
+
+    if (typeof name === 'string') {
+      data.name = name;
+    }
+
+    if (typeof email === 'string') {
+      data.email = email;
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   async register({ name, email, password }) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },

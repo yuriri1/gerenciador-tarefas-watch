@@ -14,6 +14,8 @@ describe('AuthController', () => {
 		service = {
 			register: jest.fn(),
 			login: jest.fn(),
+			getProfile: jest.fn(),
+			updateProfile: jest.fn(),
 		};
 		controller = new AuthController(service);
 		jest.clearAllMocks();
@@ -88,6 +90,56 @@ describe('AuthController', () => {
 					email: 'ana@example.com',
 				},
 				token: 'jwt-token',
+			},
+		});
+	});
+
+	test('getProfile retorna 200 com os dados do usuário', async () => {
+		service.getProfile.mockResolvedValue({
+			id: 'user-1',
+			name: 'Ana',
+			email: 'ana@example.com',
+		});
+
+		const response = await controller.getProfile('user-1');
+
+		expect(response).toEqual({
+			statusCode: 200,
+			body: {
+				user: {
+					id: 'user-1',
+					name: 'Ana',
+					email: 'ana@example.com',
+				},
+			},
+		});
+	});
+
+	test('updateProfile retorna 200 quando o perfil é atualizado', async () => {
+		service.updateProfile.mockResolvedValue({
+			id: 'user-1',
+			name: 'Ana Silva',
+			email: 'ana.silva@example.com',
+		});
+
+		const response = await controller.updateProfile('user-1', {
+			name: 'Ana Silva',
+			email: 'ana.silva@example.com',
+		});
+
+		expect(service.updateProfile).toHaveBeenCalledWith('user-1', {
+			name: 'Ana Silva',
+			email: 'ana.silva@example.com',
+		});
+		expect(response).toEqual({
+			statusCode: 200,
+			body: {
+				message: 'Perfil atualizado com sucesso.',
+				user: {
+					id: 'user-1',
+					name: 'Ana Silva',
+					email: 'ana.silva@example.com',
+				},
 			},
 		});
 	});

@@ -1,4 +1,5 @@
 import { AuthController } from './controller.js';
+import { withAuth } from '../../middleware/auth.js';
 
 const authController = new AuthController();
 
@@ -64,3 +65,53 @@ export async function login(event) {
 		});
 	}
 }
+
+export const profile = withAuth(async (event) => {
+	try {
+		const userId = event?.requestContext?.authorizer?.user?.userId;
+
+		if (!userId) {
+			return formatResponse({
+				statusCode: 401,
+				body: { message: 'Usuário não autenticado.' },
+			});
+		}
+
+		const response = await authController.getProfile(userId);
+		return formatResponse(response);
+	} catch {
+		return formatResponse({
+			statusCode: 500,
+			body: { message: 'Erro interno do servidor.' },
+		});
+	}
+});
+
+export const updateProfile = withAuth(async (event) => {
+	try {
+		const userId = event?.requestContext?.authorizer?.user?.userId;
+		const body = parseBody(event);
+
+		if (!userId) {
+			return formatResponse({
+				statusCode: 401,
+				body: { message: 'Usuário não autenticado.' },
+			});
+		}
+
+		if (body === null) {
+			return formatResponse({
+				statusCode: 400,
+				body: { message: 'Corpo da requisição inválido.' },
+			});
+		}
+
+		const response = await authController.updateProfile(userId, body);
+		return formatResponse(response);
+	} catch {
+		return formatResponse({
+			statusCode: 500,
+			body: { message: 'Erro interno do servidor.' },
+		});
+	}
+});

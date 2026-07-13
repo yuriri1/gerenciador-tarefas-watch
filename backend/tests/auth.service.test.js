@@ -4,6 +4,7 @@ const prismaMock = {
 	user: {
 		findUnique: jest.fn(),
 		create: jest.fn(),
+		update: jest.fn(),
 	},
 };
 
@@ -143,6 +144,62 @@ describe('AuthService', () => {
 		).rejects.toMatchObject({
 			message: 'INVALID_CREDENTIALS',
 			statusCode: 401,
+		});
+	});
+
+	test('getProfile retorna os dados públicos do usuário', async () => {
+		prismaMock.user.findUnique.mockResolvedValue({
+			id: 'user-1',
+			name: 'Ana',
+			email: 'ana@example.com',
+			createdAt: new Date('2026-01-01T00:00:00.000Z'),
+			updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+		});
+
+		const result = await service.getProfile('user-1');
+
+		expect(result).toMatchObject({
+			id: 'user-1',
+			name: 'Ana',
+			email: 'ana@example.com',
+		});
+	});
+
+	test('updateProfile atualiza nome e email', async () => {
+		prismaMock.user.findUnique
+			.mockResolvedValueOnce({ id: 'user-1', email: 'ana@example.com' })
+			.mockResolvedValueOnce(null);
+		prismaMock.user.update.mockResolvedValue({
+			id: 'user-1',
+			name: 'Ana Silva',
+			email: 'ana.silva@example.com',
+			createdAt: new Date('2026-01-01T00:00:00.000Z'),
+			updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+		});
+
+		const result = await service.updateProfile('user-1', {
+			name: 'Ana Silva',
+			email: 'ana.silva@example.com',
+		});
+
+		expect(prismaMock.user.update).toHaveBeenCalledWith({
+			where: { id: 'user-1' },
+			data: {
+				name: 'Ana Silva',
+				email: 'ana.silva@example.com',
+			},
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+		expect(result).toMatchObject({
+			id: 'user-1',
+			name: 'Ana Silva',
+			email: 'ana.silva@example.com',
 		});
 	});
 });

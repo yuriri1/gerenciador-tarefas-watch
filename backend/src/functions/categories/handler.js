@@ -1,7 +1,7 @@
-import { ProjectController } from './controller.js';
+import { CategoryController } from './controller.js';
 import { withAuth } from '../../middleware/auth.js';
 
-const projectController = new ProjectController();
+const categoryController = new CategoryController();
 
 function parseBody(event) {
 	if (!event || event.body == null) {
@@ -49,7 +49,7 @@ export const create = withAuth(async (event) => {
 			});
 		}
 
-		const response = await projectController.handleCreate(userId, body);
+		const response = await categoryController.handleCreate(body);
 		return formatResponse(response);
 	} catch {
 		return formatResponse({
@@ -70,7 +70,7 @@ export const list = withAuth(async (event) => {
 			});
 		}
 
-		const response = await projectController.handleList(userId);
+		const response = await categoryController.handleList();
 		return formatResponse(response);
 	} catch {
 		return formatResponse({
@@ -80,11 +80,10 @@ export const list = withAuth(async (event) => {
 	}
 });
 
-export const update = withAuth(async (event) => {
+const deleteHandler = withAuth(async (event) => {
 	try {
 		const userId = event?.requestContext?.authorizer?.user?.userId;
-		const projectId = event?.pathParameters?.id;
-		const body = parseBody(event);
+		const categoryId = event?.pathParameters?.id;
 
 		if (!userId) {
 			return formatResponse({
@@ -93,21 +92,14 @@ export const update = withAuth(async (event) => {
 			});
 		}
 
-		if (body === null) {
-			return formatResponse({
-				statusCode: 400,
-				body: { message: 'Corpo da requisição inválido.' },
-			});
-		}
-
-		if (!projectId) {
+		if (!categoryId) {
 			return formatResponse({
 				statusCode: 400,
 				body: { message: 'O parâmetro id é obrigatório.' },
 			});
 		}
 
-		const response = await projectController.handleUpdate(projectId, userId, body);
+		const response = await categoryController.handleDelete(categoryId);
 		return formatResponse(response);
 	} catch {
 		return formatResponse({
@@ -117,31 +109,4 @@ export const update = withAuth(async (event) => {
 	}
 });
 
-export const remove = withAuth(async (event) => {
-	try {
-		const userId = event?.requestContext?.authorizer?.user?.userId;
-		const projectId = event?.pathParameters?.id;
-
-		if (!userId) {
-			return formatResponse({
-				statusCode: 401,
-				body: { message: 'Usuário não autenticado.' },
-			});
-		}
-
-		if (!projectId) {
-			return formatResponse({
-				statusCode: 400,
-				body: { message: 'O parâmetro id é obrigatório.' },
-			});
-		}
-
-		const response = await projectController.handleDelete(projectId, userId);
-		return formatResponse(response);
-	} catch {
-		return formatResponse({
-			statusCode: 500,
-			body: { message: 'Erro interno do servidor.' },
-		});
-	}
-});
+export { deleteHandler as delete };

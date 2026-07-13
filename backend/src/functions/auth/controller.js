@@ -16,6 +16,10 @@ function normalizeError(error) {
 		return buildResponse(400, { message: 'E-mail já cadastrado.' });
 	}
 
+	if (error?.message === 'USER_NOT_FOUND') {
+		return buildResponse(404, { message: 'Usuário não encontrado.' });
+	}
+
 	if (error?.message === 'INVALID_CREDENTIALS') {
 		return buildResponse(401, { message: 'Credenciais inválidas.' });
 	}
@@ -72,6 +76,63 @@ export class AuthController {
 			return buildResponse(200, {
 				message: 'Login realizado com sucesso.',
 				...result,
+			});
+		} catch (error) {
+			return normalizeError(error);
+		}
+	}
+
+	async getProfile(userId) {
+		try {
+			if (!userId) {
+				return buildResponse(401, { message: 'Usuário não autenticado.' });
+			}
+
+			const user = await this.service.getProfile(userId);
+
+			return buildResponse(200, {
+				user,
+			});
+		} catch (error) {
+			return normalizeError(error);
+		}
+	}
+
+	async updateProfile(userId, payload = {}) {
+		try {
+			if (!userId) {
+				return buildResponse(401, { message: 'Usuário não autenticado.' });
+			}
+
+			const hasName = payload.name !== undefined;
+			const hasEmail = payload.email !== undefined;
+
+			if (!hasName && !hasEmail) {
+				return buildResponse(400, {
+					message: 'Ao menos um campo deve ser informado.',
+				});
+			}
+
+			if (hasName && (typeof payload.name !== 'string' || !payload.name.trim())) {
+				return buildResponse(400, {
+					message: 'O campo name é obrigatório.',
+				});
+			}
+
+			if (hasEmail && (typeof payload.email !== 'string' || !payload.email.trim())) {
+				return buildResponse(400, {
+					message: 'O campo email é obrigatório.',
+				});
+			}
+
+			const user = await this.service.updateProfile(userId, {
+				name: hasName ? payload.name.trim() : undefined,
+				email: hasEmail ? payload.email.trim() : undefined,
+			});
+
+			return buildResponse(200, {
+				message: 'Perfil atualizado com sucesso.',
+				user,
 			});
 		} catch (error) {
 			return normalizeError(error);

@@ -1,0 +1,753 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "Gerenciador de Tarefas - API Serverless",
+		"description": "Documentação interativa das rotas do ecossistema de gerenciamento de projetos, tarefas e categorias.",
+		"version": "1.0.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:3000",
+			"description": "Servidor Local (Serverless Offline)"
+		}
+	],
+	"tags": [
+		{
+			"name": "Autenticação",
+			"description": "Rotas de cadastro, login e perfil."
+		},
+		{
+			"name": "Projetos",
+			"description": "Gestão de projetos."
+		},
+		{
+			"name": "Tarefas",
+			"description": "Gestão de tarefas e status do Kanban."
+		},
+		{
+			"name": "Categorias",
+			"description": "Cadastro, listagem e exclusão de categorias globais."
+		}
+	],
+	"components": {
+		"securitySchemes": {
+			"BearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT",
+				"description": "Insira o token JWT retornado no login para acessar as rotas protegidas."
+			}
+		},
+		"schemas": {
+			"ErrorResponse": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string"
+					}
+				}
+			},
+			"User": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"name": { "type": "string" },
+					"email": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"AuthUser": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"name": { "type": "string" },
+					"email": { "type": "string" }
+				}
+			},
+			"AuthLoginResponse": {
+				"type": "object",
+				"properties": {
+					"message": { "type": "string" },
+					"user": { "$ref": "#/components/schemas/AuthUser" },
+					"token": { "type": "string" }
+				}
+			},
+			"Project": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"name": { "type": "string" },
+					"description": { "type": ["string", "null"] },
+					"creatorId": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"Category": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"name": { "type": "string" },
+					"color": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"Task": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"title": { "type": "string" },
+					"description": { "type": ["string", "null"] },
+					"status": { "type": "string" },
+					"projectId": { "type": "string" },
+					"creatorId": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" }
+				}
+			}
+		}
+	},
+	"paths": {
+		"/auth/register": {
+			"post": {
+				"summary": "Cadastro de novo usuário",
+				"tags": [
+					"Autenticação"
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"name",
+									"email",
+									"password"
+								],
+								"properties": {
+									"name": {
+										"type": "string",
+										"example": "Admin"
+									},
+									"email": {
+										"type": "string",
+										"example": "admin@admin.com"
+									},
+									"password": {
+										"type": "string",
+										"example": "senha123_segura"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Usuário cadastrado com sucesso."
+					},
+					"400": {
+						"description": "Dados inválidos ou e-mail já cadastrado."
+					},
+					"401": {
+						"description": "Não aplicável."
+					}
+				}
+			}
+		},
+		"/auth/login": {
+			"post": {
+				"summary": "Autenticação de usuário (Login)",
+				"tags": [
+					"Autenticação"
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"email",
+									"password"
+								],
+								"properties": {
+									"email": {
+										"type": "string",
+										"example": "admin@admin.com"
+									},
+									"password": {
+										"type": "string",
+										"example": "senha123_segura"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Login efetuado. Retorna o token JWT."
+					},
+					"401": {
+						"description": "Credenciais incorretas."
+					}
+				}
+			}
+		},
+		"/auth/profile": {
+			"get": {
+				"summary": "Obter perfil do usuário logado",
+				"tags": [
+					"Autenticação"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Dados do usuário autenticado."
+					},
+					"401": {
+						"description": "Token não fornecido ou inválido."
+					}
+				}
+			},
+			"patch": {
+				"summary": "Atualizar perfil do usuário logado",
+				"tags": [
+					"Autenticação"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"name": {
+										"type": "string",
+										"example": "Admin Atualizado"
+									},
+									"email": {
+										"type": "string",
+										"example": "admin.atualizado@admin.com"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Perfil atualizado com sucesso."
+					},
+					"400": {
+						"description": "Dados inválidos."
+					}
+				}
+			}
+		},
+		"/projects": {
+			"get": {
+				"summary": "Listar projetos do usuário",
+				"tags": [
+					"Projetos"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Lista de projetos retornada com sucesso."
+					}
+				}
+			},
+			"post": {
+				"summary": "Criar um novo projeto",
+				"tags": [
+					"Projetos"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"name"
+								],
+								"properties": {
+									"name": {
+										"type": "string",
+										"example": "Meu Primeiro Projeto Kanban"
+									},
+									"description": {
+										"type": "string",
+										"example": "Desenvolvimento do workspace."
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Projeto criado e criador vinculado como membro."
+					}
+				}
+			}
+		},
+		"/projects/{id}": {
+			"patch": {
+				"summary": "Atualizar projeto",
+				"tags": [
+					"Projetos"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"name"
+								],
+								"properties": {
+									"name": {
+										"type": "string",
+										"example": "Projeto Atualizado"
+									},
+									"description": {
+										"type": "string",
+										"example": "Nova descrição."
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Projeto atualizado com sucesso."
+					},
+					"403": {
+						"description": "Sem permissão para alterar este projeto."
+					},
+					"404": {
+						"description": "Projeto não encontrado."
+					}
+				}
+			},
+			"delete": {
+				"summary": "Excluir projeto",
+				"tags": [
+					"Projetos"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Projeto excluído com sucesso."
+					},
+					"403": {
+						"description": "Sem permissão para excluir este projeto."
+					},
+					"404": {
+						"description": "Projeto não encontrado."
+					}
+				}
+			}
+		},
+		"/projects/{projectId}/tasks": {
+			"get": {
+				"summary": "Listar tarefas de um projeto (Alimenta o Kanban)",
+				"tags": [
+					"Tarefas"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "projectId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Retorna o array de tarefas ordenadas por colunas."
+					}
+				}
+			}
+		},
+		"/tasks/{id}": {
+			"get": {
+				"summary": "Buscar tarefa por ID",
+				"tags": [
+					"Tarefas"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Tarefa encontrada."
+					},
+					"404": {
+						"description": "Tarefa não encontrada."
+					}
+				}
+			},
+			"patch": {
+				"summary": "Atualizar tarefa",
+				"tags": [
+					"Tarefas"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"title",
+									"status"
+								],
+								"properties": {
+									"title": {
+										"type": "string",
+										"example": "Título atualizado"
+									},
+									"description": {
+										"type": "string",
+										"example": "Nova descrição"
+									},
+									"status": {
+										"type": "string",
+										"example": "IN_PROGRESS"
+									},
+									"categoryIds": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Tarefa atualizada com sucesso."
+					},
+					"404": {
+						"description": "Tarefa não encontrada."
+					}
+				}
+			},
+			"delete": {
+				"summary": "Excluir tarefa",
+				"tags": [
+					"Tarefas"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Tarefa excluída com sucesso."
+					},
+					"404": {
+						"description": "Tarefa não encontrada."
+					}
+				}
+			}
+		},
+		"/categories": {
+			"get": {
+				"summary": "Listar categorias",
+				"tags": [
+					"Categorias"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Lista de categorias retornada com sucesso."
+					}
+				}
+			},
+			"post": {
+				"summary": "Criar categoria",
+				"tags": [
+					"Categorias"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"name",
+									"color"
+								],
+								"properties": {
+									"name": {
+										"type": "string",
+										"example": "Urgente"
+									},
+									"color": {
+										"type": "string",
+										"example": "#FF0000"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Categoria criada com sucesso."
+					}
+				}
+			}
+		},
+		"/categories/{id}": {
+			"delete": {
+				"summary": "Excluir categoria",
+				"tags": [
+					"Categorias"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Categoria excluída com sucesso."
+					},
+					"404": {
+						"description": "Categoria não encontrada."
+					}
+				}
+			}
+		},
+		"/tasks": {
+			"post": {
+				"summary": "Criar uma nova tarefa no Kanban",
+				"tags": [
+					"Tarefas"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"title",
+									"projectId"
+								],
+								"properties": {
+									"title": {
+										"type": "string",
+										"example": "Configurar o Vue.js no Frontend"
+									},
+									"description": {
+										"type": "string",
+										"example": "Criar a base com Vite."
+									},
+									"projectId": {
+										"type": "string",
+										"example": "uuid-do-projeto"
+									},
+									"categoryIds": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										},
+										"example": []
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Tarefa criada com sucesso."
+					}
+				}
+			}
+		},
+		"/tasks/{id}/status": {
+			"patch": {
+				"summary": "Atualizar status da tarefa (Simula o Drag-and-Drop)",
+				"tags": [
+					"Tarefas"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"status"
+								],
+								"properties": {
+									"status": {
+										"type": "string",
+										"enum": [
+											"PENDING",
+											"IN_PROGRESS",
+											"COMPLETED"
+										],
+										"example": "IN_PROGRESS"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Status modificado com sucesso."
+					}
+				}
+			}
+		}
+	}
+}

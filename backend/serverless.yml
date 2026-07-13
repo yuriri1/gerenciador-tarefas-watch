@@ -25,6 +25,20 @@ functions:
           path: /auth/login
           method: post
 
+  authProfile:
+    handler: src/functions/auth/handler.profile
+    events:
+      - httpApi:
+          path: /auth/profile
+          method: get
+
+  updateAuthProfile:
+    handler: src/functions/auth/handler.updateProfile
+    events:
+      - httpApi:
+          path: /auth/profile
+          method: patch
+
   createProject:
     handler: src/functions/projects/handler.create
     events:
@@ -38,6 +52,20 @@ functions:
       - httpApi:
           path: /projects
           method: get
+
+  updateProject:
+    handler: src/functions/projects/handler.update
+    events:
+      - httpApi:
+          path: /projects/{id}
+          method: patch
+
+  deleteProject:
+    handler: src/functions/projects/handler.remove
+    events:
+      - httpApi:
+          path: /projects/{id}
+          method: delete
 
   createTask:
     handler: src/functions/tasks/handler.create
@@ -53,11 +81,60 @@ functions:
           path: /projects/{projectId}/tasks
           method: get
 
+  getTaskById:
+    handler: src/functions/tasks/handler.getById
+    events:
+      - httpApi:
+          path: /tasks/{id}
+          method: get
+
   updateTaskStatus:
     handler: src/functions/tasks/handler.updateStatus
     events:
       - httpApi:
           path: /tasks/{id}/status
-        method: patch
+          method: patch
+
+  updateTask:
+    handler: src/functions/tasks/handler.update
+    events:
+      - httpApi:
+          path: /tasks/{id}
+          method: patch
+
+  deleteTask:
+    handler: src/functions/tasks/handler.remove
+    events:
+      - httpApi:
+          path: /tasks/{id}
+          method: delete
+
+  createCategory:
+    handler: src/functions/categories/handler.create
+    events:
+      - httpApi:
+          path: /categories
+          method: post
+
+  listCategories:
+    handler: src/functions/categories/handler.list
+    events:
+      - httpApi:
+          path: /categories
+          method: get
+
+  deleteCategory:
+    handler: src/functions/categories/handler.delete
+    events:
+      - httpApi:
+          path: /categories/{id}
+          method: delete
+
+  swaggerDocs:
+    handler: src/functions/docs/handler.swagger
+    events:
+      - httpApi:
+          path: /docs
+          method: get
   
   
