@@ -66,7 +66,7 @@ const submitProject = async () => {
     await projectStore.createProject(projectName.value, projectDescription.value);
 
     emit('show-toast', { message: 'Projeto criado com sucesso!', color: 'success' });
-    closeDialog(); // Agora ela vai rodar perfeitamente
+    closeDialog();
   } catch (error) {
     const apiError = error.response?.data?.error || 'Erro ao criar o projeto.';
     emit('show-toast', { message: apiError, color: 'error' });

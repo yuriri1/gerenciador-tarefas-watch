@@ -78,7 +78,6 @@ import { useAuthStore } from '../stores/auth';
 const router = useRouter();
 const authStore = useAuthStore();
 
-// Estados do formulário
 const formRef = ref(null);
 const isFormValid = ref(false);
 const email = ref('');

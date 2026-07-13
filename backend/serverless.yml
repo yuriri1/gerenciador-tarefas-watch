@@ -1,3 +1,5 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: yurir
 service: gerenciador-tarefas-backend
 
 provider:
@@ -8,8 +10,33 @@ provider:
     DATABASE_URL: ${env:DATABASE_URL}
     JWT_SECRET: ${env:JWT_SECRET}
 
+build:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    exclude:
+      - '@prisma/client'
+
 plugins:
   - serverless-offline
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    exclude:
+      - '@prisma/client'
+    packager: npm
+
+package:
+  patterns:
+    - '!node_modules/**'                  
+    - 'generated/prisma/**'               
+    - '!generated/prisma/libquery_engine-debian*'
+    - 'generated/prisma/libquery_engine-rhel*'
+
 functions:
   authRegister:
     handler: src/functions/auth/handler.register
